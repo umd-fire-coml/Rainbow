@@ -6,13 +6,13 @@ from plotly.graph_objs import Scatter
 from plotly.graph_objs.scatter import Line
 import torch
 
-from env import Env
+# from env import Env
 
 
 # Test DQN
-def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
-  env = Env(args)
-  env.eval()
+def test(args, env, T, dqn, val_mem, metrics, results_dir, evaluate=False):
+#   env = Env(args)
+#   env.eval()
   metrics['steps'].append(T)
   T_rewards, T_Qs = [], []
 
@@ -24,19 +24,19 @@ def test(args, T, dqn, val_mem, metrics, results_dir, evaluate=False):
         state, reward_sum, done = env.reset(), 0, False
 
       action = dqn.act_e_greedy(state)  # Choose an action ε-greedily
-      state, reward, done = env.step(action)  # Step
+      state, reward = env.__getitem__(0, action)  # Step
       reward_sum += reward
-      if args.render:
-        env.render()
+#       if args.render:
+#         env.render()
 
-      if done:
+      if env.is_done():
         T_rewards.append(reward_sum)
         break
-  env.close()
+#   env.close()
 
   # Test Q-values over validation memory
   for state in val_mem:  # Iterate over valid states
-    T_Qs.append(dqn.evaluate_q(state))
+    T_Qs.append(dqn.evaluate_q(state[0]))
 
   avg_reward, avg_Q = sum(T_rewards) / len(T_rewards), sum(T_Qs) / len(T_Qs)
   if not evaluate:
